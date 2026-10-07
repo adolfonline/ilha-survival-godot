@@ -6,6 +6,7 @@ var player: CharacterBody3D
 var camera: Camera3D
 var hud: Label
 var quick_menu: PanelContainer
+var menu_resources: Label
 var resources := {"Pedra": 0, "Galho": 0, "Fruta vermelha": 0, "Folha": 0}
 
 func _ready() -> void:
@@ -113,28 +114,119 @@ func _build_player() -> void:
 func _build_ui() -> void:
     var canvas := CanvasLayer.new()
     add_child(canvas)
+
     hud = Label.new()
     hud.position = Vector2(24, 20)
     hud.add_theme_font_size_override("font_size", 18)
+    hud.add_theme_color_override("font_color", Color("#fff7d6"))
     canvas.add_child(hud)
+
+    var crosshair := Label.new()
+    crosshair.text = "+"
+    crosshair.position = Vector2(636, 345)
+    crosshair.add_theme_font_size_override("font_size", 24)
+    crosshair.add_theme_color_override("font_color", Color("#fff7d6"))
+    canvas.add_child(crosshair)
+
     quick_menu = PanelContainer.new()
-    quick_menu.position = Vector2(430, 250)
-    quick_menu.size = Vector2(420, 220)
+    quick_menu.position = Vector2(330, 105)
+    quick_menu.size = Vector2(620, 510)
     quick_menu.visible = false
-    var label := Label.new()
-    label.text = "MENU RÁPIDO\n\n1  Picareta    2  Machado    3  Martelo\n4  Pá          5  Enxada     6  Vara de pesca\n7  Fogueira\n\nPressione F para fechar"
-    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    label.add_theme_font_size_override("font_size", 20)
-    quick_menu.add_child(label)
+    quick_menu.add_theme_stylebox_override("panel", _panel_style(Color("#173c3a"), Color("#e7c875"), 18, 3))
     canvas.add_child(quick_menu)
+
+    var margin := MarginContainer.new()
+    margin.add_theme_constant_override("margin_left", 28)
+    margin.add_theme_constant_override("margin_right", 28)
+    margin.add_theme_constant_override("margin_top", 22)
+    margin.add_theme_constant_override("margin_bottom", 22)
+    quick_menu.add_child(margin)
+
+    var content := VBoxContainer.new()
+    content.add_theme_constant_override("separation", 12)
+    margin.add_child(content)
+
+    var title := Label.new()
+    title.text = "OFICINA DE SOBREVIVÊNCIA"
+    title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    title.add_theme_font_size_override("font_size", 28)
+    title.add_theme_color_override("font_color", Color("#ffe6a1"))
+    content.add_child(title)
+
+    var subtitle := Label.new()
+    subtitle.text = "Ferramentas, abrigo e vida sustentável"
+    subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    subtitle.add_theme_font_size_override("font_size", 15)
+    subtitle.add_theme_color_override("font_color", Color("#b8e1c4"))
+    content.add_child(subtitle)
+
+    var separator := HSeparator.new()
+    content.add_child(separator)
+
+    var section := Label.new()
+    section.text = "ITENS RÁPIDOS"
+    section.add_theme_font_size_override("font_size", 16)
+    section.add_theme_color_override("font_color", Color("#ffd27d"))
+    content.add_child(section)
+
+    var cards := GridContainer.new()
+    cards.columns = 3
+    cards.add_theme_constant_override("h_separation", 10)
+    cards.add_theme_constant_override("v_separation", 10)
+    content.add_child(cards)
+    _add_menu_card(cards, "1", "PICAreta", "Pedra + Galho")
+    _add_menu_card(cards, "2", "MACHADO", "Pedra + Galho")
+    _add_menu_card(cards, "3", "MARTELO", "Pedra + Galho")
+    _add_menu_card(cards, "4", "PÁ DE AREIA", "Galho + Pedra")
+    _add_menu_card(cards, "5", "ENXADA", "Galho + Pedra")
+    _add_menu_card(cards, "6", "VARA DE PESCA", "Galho + Folha")
+
+    var inventory_title := Label.new()
+    inventory_title.text = "MOCHILA"
+    inventory_title.add_theme_font_size_override("font_size", 16)
+    inventory_title.add_theme_color_override("font_color", Color("#ffd27d"))
+    content.add_child(inventory_title)
+
+    menu_resources = Label.new()
+    menu_resources.add_theme_font_size_override("font_size", 16)
+    menu_resources.add_theme_color_override("font_color", Color("#f4f1d0"))
+    content.add_child(menu_resources)
+
+    var footer := Label.new()
+    footer.text = "F fechar   •   WASD mover   •   E coletar   •   ESC liberar mouse"
+    footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    footer.add_theme_font_size_override("font_size", 14)
+    footer.add_theme_color_override("font_color", Color("#b8e1c4"))
+    content.add_child(footer)
     _update_hud()
+
+func _add_menu_card(parent: GridContainer, hotkey: String, item_name: String, recipe: String) -> void:
+    var card := PanelContainer.new()
+    card.custom_minimum_size = Vector2(175, 72)
+    card.add_theme_stylebox_override("panel", _panel_style(Color("#24534b"), Color("#6ba878"), 10, 1))
+    parent.add_child(card)
+    var label := Label.new()
+    label.text = "[%s] %s\n      %s" % [hotkey, item_name, recipe]
+    label.add_theme_font_size_override("font_size", 14)
+    label.add_theme_color_override("font_color", Color("#fff7d6"))
+    card.add_child(label)
+
+func _panel_style(background: Color, border: Color, radius: int, border_width: int) -> StyleBoxFlat:
+    var style := StyleBoxFlat.new()
+    style.bg_color = background
+    style.border_color = border
+    style.set_border_width_all(border_width)
+    style.set_corner_radius_all(radius)
+    return style
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.pressed:
+        if quick_menu.visible:
+            return
         Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
     if event is InputEventKey and event.pressed and event.keycode == KEY_F:
         quick_menu.visible = not quick_menu.visible
+        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if quick_menu.visible else Input.MOUSE_MODE_CAPTURED
     if event is InputEventKey and event.pressed and event.keycode == KEY_E:
         _collect_nearest()
     if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -146,7 +238,16 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
     if not player:
         return
-    var input_vector := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+    var input_vector := Vector2.ZERO
+    if Input.is_key_pressed(KEY_A):
+        input_vector.x -= 1.0
+    if Input.is_key_pressed(KEY_D):
+        input_vector.x += 1.0
+    if Input.is_key_pressed(KEY_W):
+        input_vector.y -= 1.0
+    if Input.is_key_pressed(KEY_S):
+        input_vector.y += 1.0
+    input_vector = input_vector.normalized()
     var direction := (player.transform.basis * Vector3(input_vector.x, 0, input_vector.y)).normalized()
     player.velocity.x = direction.x * PLAYER_SPEED
     player.velocity.z = direction.z * PLAYER_SPEED
@@ -173,4 +274,6 @@ func _collect_nearest() -> void:
 
 func _update_hud() -> void:
     if hud:
-        hud.text = "ILHA SURVIVAL  |  E: coletar   F: menu rápido   ESC: liberar mouse\nPedra: %d   Galhos: %d   Frutas: %d   Folhas: %d" % [resources["Pedra"], resources["Galho"], resources["Fruta vermelha"], resources["Folha"]]
+        hud.text = "ILHA SURVIVAL  |  WASD mover   E coletar   F oficina\nPedra: %d   Galhos: %d   Frutas: %d   Folhas: %d" % [resources["Pedra"], resources["Galho"], resources["Fruta vermelha"], resources["Folha"]]
+    if menu_resources:
+        menu_resources.text = "Pedra  %d     Galhos  %d     Frutas vermelhas  %d     Folhas  %d" % [resources["Pedra"], resources["Galho"], resources["Fruta vermelha"], resources["Folha"]]
