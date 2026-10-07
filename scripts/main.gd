@@ -72,6 +72,7 @@ func _add_resource(position: Vector3, resource_name: String, color: Color, radiu
     var area := Area3D.new()
     area.position = position
     area.set_meta("resource_name", resource_name)
+    area.add_to_group("collectible")
     var mesh := MeshInstance3D.new()
     var sphere := SphereMesh.new()
     sphere.radius = radius
@@ -130,6 +131,8 @@ func _build_ui() -> void:
     _update_hud()
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventMouseButton and event.pressed:
+        Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
     if event is InputEventKey and event.pressed and event.keycode == KEY_F:
         quick_menu.visible = not quick_menu.visible
     if event is InputEventKey and event.pressed and event.keycode == KEY_E:
